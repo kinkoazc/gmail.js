@@ -1,6 +1,100 @@
 
 # Changelog
 
+## Version 1.1.13
+
+- Drop bundled jQuery, support jQuery 4, support explicit no-jQuery mode
+- Fix reply button selector to support Gmail in text labels mode
+- Fix `api.get.user_email()`.
+
+## Version 1.1.12
+
+- Use MutationObserver for DOM Node changes. Thanks @cancan101!
+- Fix issue in `api.dom.compose.is_inline()`.  Thanks @MadcowD!
+
+## Version 1.1.11
+
+- Fix `api.observe.on("view_email", ...)`not working.
+
+## Version 1.1.10
+
+- Fix `api.dom.right_toolbar()`, by @stevepeak.
+
+## Version 1.1.9
+
+- Fix `api.helper.get.is_delegated_inbox`, by @moodsey211.
+
+## Version 1.1.8
+
+- Fix incorrect variable name in GmailCache definition
+
+## Version 1.1.7
+
+- Fix for `api.tools.parse_attachment_url`.
+
+## Version 1.1.6
+
+- Better fix for `view_thread` event not triggeriong, by @cancan101.
+
+## Version 1.1.5
+
+- Improved parsing of embedded json data, by @onestep.
+- Tentative fix for `view_thread` event not triggeriong, by @cancan101.
+
+## Version 1.1.4
+
+- Fix subject-value in `api.observe.on("send_message")` event-data, by @cancan101.
+
+## Version 1.1.3
+
+- Even more fixes for `api.observe.on("send_message")` by @huksley.
+
+## Version 1.1.2
+
+- Try some fixes for `api.observe.on("send_message")`.
+
+## Version 1.1.1
+
+- More fixes for `api.new.get.email_data()` and `api.new.get.thread_data()`.
+
+## Version 1.1.0
+
+- First release to fix new XHR format in Gmail. This fixes
+  `api.new.get.email_data()` and `api.new.get.thread_data()`.
+
+## Version 1.0.23
+
+- Fix error in `insertion_observer()`.
+- Remove no longer working functions: `gmail.get.loggedin_accounts()`,
+  `gmail.get.manager_email()` and `gmail.get.delegated_to_email()`.
+
+## Version 1.0.22
+
+- Fix incompatibility with Mixmax extension. Thanks @DrParanoia!
+
+## Version 1.0.21
+
+- Various typescript type-improvements. Thanks again @cancan101!
+- Fix errors when trying to prefetch email-data. Once again, thanks to @cancan101!
+- Introduce new function `gmail.tools.add_more_send_option()`. Even more thanks to @cancan101!
+- Make `gmail.get.email_source_*()` handle new-style and old-style identifiers natively.
+
+## Version 1.0.20
+
+- Fix error in TypeScript type-definitions. No functional/runtime changes. Thanks @cancan101
+
+## Version 1.0.19
+
+- Fix compose button being duplicated when using `gmail.tools.add_compose_button` more than once.
+
+## Version 1.0.18
+
+- Fix parsing of attachments in emails form embedded JSON. Thanks @onestep!
+
+## Version 1.0.17
+
+- Fix ussyes with `gmail.dom.visible_messages()`. Thanks @mhatvan!
+
 ## Version 1.0.16
 
 - Fix `gmail.observe.on("http_event")` and `gmail.observe.after("http_event")` triggers to receive all XHR requests.

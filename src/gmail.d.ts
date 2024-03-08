@@ -23,7 +23,8 @@ declare type StringDict = {
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-interface GmailTracker {
+interface GmailTracker<T extends string = never> {
+    dom_observers: { [observer in GmailDomObserver | T]?: DomObserverConfig };
     globals: any[];
     view_data: any[];
     ik: string;
@@ -31,10 +32,10 @@ interface GmailTracker {
     events: {}[];
     actions: {}[];
     watchdog: {
-        before: {},
-        on: {},
-        after: {},
-        dom: {}
+        before: { [action in GmailBindAction | T]?: Function[] };
+        on: { [action in GmailBindAction | T]?: Function[] };
+        after: { [action in GmailBindAction | T]?: Function[] };
+        dom: { [observer in GmailDomObserver | T]?: Function[] };
     };
 }
 
@@ -55,9 +56,9 @@ declare type GmailPageType =
 declare type GmailEmailAddress = string[];
 
 declare type GmailDomComposeRecipients = {
-   to: string[];
-   cc: string[];
-   bcc: string[];
+    to: string[];
+    cc: string[];
+    bcc: string[];
 }
 
 declare type GmailAttachmentDetails = {
@@ -296,9 +297,9 @@ interface GmailCheck {
      */
     is_new_gui(): boolean;
     /**
-       Returns True if the compose UI uses new UI as announced [here](https://workspaceupdates.googleblog.com/2021/10/visual-updates-for-composing-email-in-gmail.html) 
+       Returns True if the compose UI uses new UI as announced [here](https://workspaceupdates.googleblog.com/2021/10/visual-updates-for-composing-email-in-gmail.html)
     */
-    is_peoplekit_compose(composeElement: HTMLElement): boolean;
+    is_peoplekit_compose(composeElement: JQuery | HTMLElement): boolean;
     /**
        Returns True if the conversation is threaded False otherwise
      */
@@ -420,7 +421,7 @@ interface GmailDomThread {
     /**
        Retrieve preconfigured dom elements for this email
     */
-    dom(lookup: GmailDomThreadLookup): JQuery,
+    dom(lookup?: GmailDomThreadLookup): JQuery,
 }
 
 interface GmailDomAttachment {
@@ -478,7 +479,7 @@ interface GmailDomEmail {
     /**
       Retrieve preconfigured dom elements for this email
      */
-    dom(lookup: GmailDomEmailLookup): JQuery;
+    dom(lookup?: GmailDomEmailLookup): JQuery;
     /**
        An object for interacting with an email currently present in the DOM. Represents a conversation thread
        Provides a number of methods and properties to access & interact with it
@@ -489,7 +490,7 @@ interface GmailDomEmail {
 
 declare type GmailDomComposeLookup =
     'to' | 'cc' | 'bcc' | 'id' | 'draft' | 'subject' | 'subjectbox'
-    | 'all_subjects' | 'body' | 'quoted_reply' |'reply' | 'forward' | 'from' | 'send_button' | 'show_cc' | 'show_bcc';
+    | 'all_subjects' | 'body' | 'quoted_reply' | 'reply' | 'forward' | 'from' | 'send_button' | 'show_cc' | 'show_bcc';
 
 interface GmailMessageRow {
     summary: string;
@@ -502,7 +503,7 @@ interface GmailMessageRow {
     legacy_email_id: string | undefined;
 }
 
-declare type GmailDomCompose = {
+interface GmailDomCompose {
     $el: JQuery,
     /**
        Retrieve the compose id
@@ -521,24 +522,32 @@ declare type GmailDomCompose = {
     */
     is_inline(): boolean,
     /**
+        Compose type - reply / forward / compose (new)
+     */
+    type(): GmailComposeType,
+    /**
        Retrieves to, cc, bcc and returns them in a hash of arrays
        Parameters:
        options.type  string  to, cc, or bcc to check a specific one
        options.flat  boolean if true will just return an array of all recipients instead of splitting out into to, cc, and bcc
     */
-    recipients(options?: { type: 'to' | 'cc' | 'bcc', flat: boolean }): GmailDomComposeRecipients | string[];
+    recipients(options?: { type: 'to' | 'cc' | 'bcc' }): GmailDomComposeRecipients;
+    recipients(options?: { flat: boolean }): string[];
     /**
-      Retrieve the current 'to' recipients
+       Retrieve the typing area for "to" recipients, not recipients.
+       Either textarea or input, which can be empty if last recipient are typed and selected (by pressing ENTER)
      */
-    to(): JQuery;
+    to(to?: string): JQuery;
     /**
-      Retrieve the current 'cc' recipients
+       Retrieve the typing area for "cc" recipients, not recipients.
+       Either textarea or input, which can be empty if last recipient are typed and selected (by pressing ENTER)
      */
-    cc(): JQuery;
+    cc(cc?: string): JQuery;
     /**
-      Retrieve the current 'bcc' recipients
+       Retrieve the typing area for "bcc" recipients, not recipients.
+       Either textarea or input, which can be empty if last recipient are typed and selected (by pressing ENTER)
      */
-    bcc(): JQuery;
+    bcc(bcc?: string): JQuery;
     /**
        Get/Set the current subject
        Parameters:
@@ -554,12 +563,12 @@ declare type GmailDomCompose = {
        Get/Set the email html body
     */
     body(body?: string): string;
-    /*
+    /**
        Get the email attachments
     */
     attachments(): GmailDomAttachment[];
-    /*
-      Triggers the same action as clicking the "send" button would do.
+    /**
+       Triggers the same action as clicking the "send" button would do.
     */
     send(): void;
     /**
@@ -573,7 +582,7 @@ declare type GmailDomCompose = {
     /**
        Retrieve preconfigured dom elements for this compose window
     */
-    dom(lookup: GmailDomComposeLookup): JQuery;
+    dom(lookup?: GmailDomComposeLookup): JQuery;
 }
 
 interface GmailDom {
@@ -663,7 +672,7 @@ interface GmailTools {
        observes every element inserted into the DOM by Gmail and looks at the classes on those elements,
        checking for any configured observers related to those classes
     */
-    insertion_observer(target: HTMLElement | string, dom_observers: any, dom_observer_map: any, sub: any): void;
+    insertion_observer(target: HTMLElement | string, dom_observers: { [observer: string]: DomObserverConfig }, dom_observer_map: { [className: string]: string[] }, sub?: string): void;
 
     make_request(link: string, method: GmailHttpRequestMethod, disable_cache: boolean): string;
     make_request_async(link: string, method: GmailHttpRequestMethod, callback: (data: string) => void, disable_cache: boolean): void;
@@ -708,7 +717,14 @@ interface GmailTools {
     i18n(label: string): string;
     add_toolbar_button(content_html: string, onClickFunction: Function, styleClass: string): JQuery;
     add_right_toolbar_button(content_html: string, onClickFunction: Function, styleClass: string): JQuery;
-    add_compose_button(composeWindow: GmailDomCompose, content_html: string, onClickFunction: Function, styleClass: string): JQuery;
+    add_compose_button(composeWindow: GmailDomCompose, content_html: string, onClickFunction: Function, styleClass?: string): JQuery;
+    add_more_send_option(
+        composeWindow: GmailDomCompose,
+        buttonText: string,
+        onClickFunction: Function,
+        styleClass?: string | undefined,
+        imgClass?: string | undefined
+    ): JQuery;
     /**
        adds a button to an email attachment.
 
@@ -749,16 +765,25 @@ declare type GmailBindAction =
     | 'new_email' | 'refresh' | 'open_email' | 'upload_attachment' | 'compose'
     | 'compose_cancelled' | 'recipient_change' | 'view_thread' | 'view_email'
     | 'load_email_menu';
+declare type GmailDomObserver =
+    'view_thread' | 'view_email' | 'load_email_menu' | 'recipient_change' | 'compose'
 
 interface HttpEventRequestParams {
-   url: object,
-   url_raw: string;
-   body: string;
-   body_params: object;
-   method: string;
+    url: object,
+    url_raw: string;
+    body: string;
+    body_params: object;
+    method: string;
 }
 
-interface GmailObserve {
+interface DomObserverConfig {
+    class: string | string[];
+    selector?: string;
+    sub_selector?: string;
+    handler?: Function;
+}
+
+interface GmailObserve<T extends string = never> {
     /**
        After an observer has been bound through gmail.observe.bind() (via a
        call to events gmail.observe.before(), gmail.observe.on(), or
@@ -776,7 +801,7 @@ interface GmailObserve {
     /**
        Bind a specified callback to an array of callbacks against a specified type & action
     */
-    bind(type: GmailBindType, action: Function, callback: Function): void;
+    bind(type: GmailBindType, action: GmailBindAction | T, callback: Function): void;
 
     /**
       an on event is observed just after gmail sends an xhr request
@@ -799,40 +824,40 @@ interface GmailObserve {
        Your callback will be fired directly after Gmail's XMLHttpRequest
        has been sent off the the Gmail servers.
     */
-    on(action: GmailBindAction, callback: Function, response_callback?: Function): void;
+    on(action: GmailBindAction | T, callback: Function, response_callback?: Function): void;
     /**
       an before event is observed just prior to the gmail xhr request being sent
       before events have the ability to modify the xhr request before it is sent
      */
-    before(action: GmailBindAction, callback: Function): void;
+    before(action: GmailBindAction | T, callback: Function): void;
     /**
       an after event is observed when the gmail xhr request returns from the server
       with the server response
     */
-    after(action: "send_message", callback: (url: string, body: string, data: any, xhr: XMLHttpRequest) => void): void;
+    after(action: "send_message", callback: (url: string, body: string, data: any, response: any, xhr: XMLHttpRequest) => void): void;
     after(action: "http_event", callback: (request: HttpEventRequestParams, responseData: any, xhr: XMLHttpRequest) => void): void;
-    after(action: GmailBindAction, callback: Function): void;
+    after(action: GmailBindAction | T, callback: Function): void;
     /**
       Checks if a specified action & type has anything bound to it
       If type is null, will check for this action bound on any type
       If action is null, will check for any actions bound to a type
      */
-    bound(action: GmailBindAction, type: GmailBindType): boolean;
+    bound(action: GmailBindAction | T, type: GmailBindType): boolean;
     /**
       Clear all callbacks for a specific type (before, on, after, dom) and action
       If action is null, all actions will be cleared
       If type is null, all types will be cleared
      */
-    off(action: GmailBindAction, type: GmailBindType): void;
+    off(action: GmailBindAction | T, type: GmailBindType): void;
     /**
       Trigger any specified events bound to the passed type
       Returns true or false depending if any events were fired
      */
-    trigger(type: GmailBindType, events: any, xhr: XMLHttpRequest): boolean;
+    trigger(type: GmailBindType, events: { [action in GmailBindAction | T]?: any[] }, xhr: XMLHttpRequest): boolean;
     /**
       Trigger any specified DOM events passing a specified element & optional handler
      */
-    trigger_dom(observer: any, element: HTMLElement, handler?: Function): void;
+    trigger_dom(observer: GmailDomObserver | T, element: HTMLElement, handler?: Function): void;
 
     initialize_dom_observers(): void;
 
@@ -845,13 +870,13 @@ interface GmailObserve {
         className / args - for a simple observer, this arg can simply be the class on an inserted DOM element that identifies this event should be
           triggered. For a more complicated observer, this can be an object containing properties for each of the supported DOM observer config arguments
      */
-    register(action: string, args: string | StringDict): void;
+    register(action: T, args: string | DomObserverConfig): void;
     /**
       Observe DOM nodes being inserted. When a node with a class defined in api.tracker.dom_observers is inserted,
       trigger the related event and fire off any relevant bound callbacks
       This function should return true if a dom observer is found for the specified action
      */
-    on_dom(action: GmailBindAction, callback: Function): void;
+    on_dom(action: GmailBindAction | T, callback: Function): boolean;
 }
 
 
@@ -982,7 +1007,7 @@ interface GmailNewGet {
      *
      * @param email_id: new style email id. Legacy IDs not supported. If empty, default to latest in view.
      */
-    email_data(identifier: GmailEmailIdentifier): GmailNewEmailData | null;
+    email_data(identifier?: GmailEmailIdentifier): GmailNewEmailData | null;
     /**
      * Returns available information about a specific thread.
      *
@@ -999,7 +1024,7 @@ interface GmailCache {
     debug_xhr_fetch: boolean;
     emailIdCache: { (emailId: string): GmailNewEmailData };
     emailLegacyIdCache: { (legacyEmailId: string): GmailNewEmailData };
-    emailThreadIdCache: { (threadId: string): GmailNewThreadData };
+    threadCache: { (threadId: string): GmailNewThreadData };
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1008,15 +1033,15 @@ interface GmailCache {
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-declare class Gmail {
-    constructor(localJQuery?: JQueryStatic);
+declare class Gmail<T extends string = never> {
+    constructor(localJQuery: JQueryStatic | false);
 
     version: string;
     /**
        These are some of the variables that are tracked and kept in
        memory while the rest of the methods are in use.
      */
-    tracker: GmailTracker;
+    tracker: GmailTracker<T>;
     get: GmailGet;
     check: GmailCheck;
     /**
@@ -1028,7 +1053,7 @@ declare class Gmail {
        use. See source for input params
      */
     tools: GmailTools;
-    observe: GmailObserve;
+    observe: GmailObserve<T>;
     helper: GmailHelper;
     chat: GmailChat;
     compose: GmailCompose;

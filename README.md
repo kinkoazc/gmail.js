@@ -44,20 +44,6 @@ For a ready to use example/boilerplate repo, look no further:
 
 - **[GmailJS Node Boilerplate](https://github.com/josteink/gmailjs-node-boilerplate)** - Example for how to create a browser-extension using GmailJS and modern javascript with NodeJS and script-bundling for instant load-times.
 
-### Content Security Policy (legacy advice)
-
-In earlier advice given w.r.t. deployment of GmailJS, where scripts were injected one by
-one, with cumbersome loading and probing mechanisms, CSP could be an
-problem causing your extension to fail if GmailJS was injected incorrectly.
-
-If you use modern javascript and script-bundling in your extension (like in the boilerplate example), CSP will not interfere with loading
-of your extension, nor GmailJS.
-
-If you have any issues with CSP, the general advice is to build your extension using script-bundling and eliminate the cause of the error
-all together.
-
-While you may be able to make it work, legacy loading is no longer considered supported by GmailJS.
-
 ## Typescript
 
 Using gmail-js with TypeScript is relatively easy, but if you use normal `import` syntax it
@@ -68,6 +54,14 @@ const GmailFactory = require("gmail-js");
 const gmail = new GmailFactory.Gmail() as Gmail;
 // working on the gmail-object now provides type-safety.
 ````
+
+You will also have to import the types somewhere, like in a file called `types.d.ts` in your project:
+
+````typescript
+import "gmail-js";
+````
+
+
 
 ## Methods
 
@@ -158,12 +152,6 @@ const gmail = new GmailFactory.Gmail() as Gmail;
 
 
 #### OBSERVE
-It is considered best practice to wait for the gmail interface to be loaded before observing any XHR actions.
-```js
-gmail.observe.on("load", function(){
-    //... now you can safely register other observers using gmail.observe.on
-});
-```
 
 - [gmail.observe**.http_requests()**](#gmailobservehttp_requests)
 - [gmail.observe**.actions()**](#gmailobserveactions)
@@ -264,7 +252,8 @@ These are some helper functions that the rest of the methods use. See source for
 - gmail.tools**.toggle_minimize()**
 - [gmail.tools**.add_toolbar_button(content_html, onclick_action, custom_style_class)**](#gmailtoolsadd_toolbar_buttoncontent_html-onclick_action-custom_style_class)
 - [gmail.tools**.add_right_toolbar_button(content_html, onclick_action, custom_style_class)**](#gmailtoolsadd_right_toolbar_buttoncontent_html-onclick_action-custom_style_class)
-- [gmail.tools**.add_compose_button(compose_ref, content_html, onclick_action, custom_style_class)**](#gmailtoolsadd_toolbar_buttoncompose_ref-content_html-onclick_action-custom_style_class)
+- [gmail.tools**.add_compose_button(compose_ref, content_html, onclick_action, custom_style_class)**](#gmailtoolsadd_compose_buttoncompose_ref-content_html-onclick_action-custom_style_class)
+- [gmail.tools**.add_more_send_option(composeWindow, buttonText, onClickFunction, styleClass, imgClass)**](#gmailtoolsadd_more_send_optioncomposewindow-buttontext-onclickfunction-styleclass-imgclass)
 - [gmail.tools**.add_modal_window(title, content_html, onClickOk, onClickCancel, onClickClose)**](#gmailtoolsadd_modal_windowtitle-content_html-onClickOk-onClickCancel-onClickClose)
 - [gmail.tools**.remove_modal_window()**](#gmailtoolsremove_modal_window)
 
@@ -1102,6 +1091,7 @@ Compose methods:
 - **.id()** - retrieve the compose id
 - **.email_id()** - retrieve the draft email id
 - **.is_inline()** - is this compose instance inline (as with reply & forwards) or a popup (as with a new compose)
+- **.type()** - retrieve compose type - reply / forward / compose (new)
 - **.recipients(options)** - retrieves `to`, `cc`, `bcc` and returns them in a hash of arrays.
   Options:
   - *.type* - string  `to`, `cc`, or `bcc` to check a specific one
@@ -1290,6 +1280,18 @@ var compose_ref = gmail.dom.composes()[0];
 gmail.tools.add_compose_button(compose_ref, 'content_html', function() {
   // Code here
 }, 'Custom Style Classes');
+```
+
+#### gmail.tools.add_more_send_option(composeWindow, buttonText, onClickFunction, styleClass, imgClass)
+
+Add button to "more send options" menu.
+You can use gmail.dom.composes() to get compose reference.
+
+```js
+var compose_ref = gmail.dom.composes()[0];
+gmail.tools.add_more_send_option(compose_ref, 'buttonText', function() {
+  // Code here
+}, 'Custom Style Classes', 'imgClass');
 ```
 
 #### gmail.tools.add_attachment_button(attachment_ref, content_html, customCssClass, tooltip, onclick_action)
